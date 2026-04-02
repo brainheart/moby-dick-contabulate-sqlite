@@ -48,18 +48,18 @@ def test_works(db):
     cur = db.execute("SELECT COUNT(*) FROM works")
     count = cur.fetchone()[0]
     test("Has works", count > 0, f"count={count}")
-    test("Has >100 chapters", count >= 100, f"count={count}")
+    test("Has multiple works", count >= 5, f"count={count}")
     
     # Check Moby Dick specific
-    cur = db.execute("SELECT title FROM works WHERE abbr='Ch1'")
+    cur = db.execute("SELECT title FROM works WHERE title='Moby-Dick'")
     row = cur.fetchone()
-    test("Chapter 1 is 'Loomings'", row and row[0] == 'Loomings', f"got: {row}")
+    test("Moby-Dick exists", row is not None, f"got: {row}")
     
     # Total words
     cur = db.execute("SELECT SUM(total_words) FROM works")
     total = cur.fetchone()[0]
     test("Total words > 200K", total and total > 200000, f"total={total}")
-    test("Total words < 250K", total and total < 250000, f"total={total}")
+    test("Total words > 1M", total and total > 1000000, f"total={total}")
 
 
 def test_segments(db):
@@ -92,9 +92,9 @@ def test_lines(db):
     test("No empty lines", empty == 0, f"empty={empty}")
     
     # Check famous opening
-    cur = db.execute("SELECT text FROM lines WHERE work_id = (SELECT work_id FROM works WHERE abbr='Ch1') ORDER BY line_num LIMIT 1")
+    cur = db.execute("SELECT text FROM lines WHERE work_id = (SELECT work_id FROM works WHERE title='Moby-Dick') ORDER BY line_num LIMIT 1")
     row = cur.fetchone()
-    test("First line of Ch1 contains 'Ishmael'", 
+    test("Moby-Dick contains 'Ishmael'", 
          row and 'Ishmael' in row[0], 
          f"got: {row[0][:60] if row else 'None'}...")
 

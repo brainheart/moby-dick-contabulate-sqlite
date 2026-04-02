@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Search Moby-Dick by Herman Melville — explore word frequencies, TF-IDF scores, and textual patterns across chapters and paragraphs. Built from Project Gutenberg eText.">
+  <meta name="description" content="Search the complete prose fiction of Herman Melville — explore word frequencies, TF-IDF scores, and textual patterns across works, chapters, and paragraphs. Built from Project Gutenberg eTexts.">
   <meta name="author" content="Reinhard Engels">
   <link rel="canonical" href="https://moby-dick.contabulate.org/">
-  <meta property="og:title" content="Contabulate: Moby-Dick Tabular Search">
-  <meta property="og:description" content="Search Moby-Dick by Herman Melville — explore word frequencies, TF-IDF scores, and textual patterns across chapters and paragraphs. Built from Project Gutenberg eText.">
+  <meta property="og:title" content="Contabulate: Melville Tabular Search">
+  <meta property="og:description" content="Search the complete prose fiction of Herman Melville — explore word frequencies, TF-IDF scores, and textual patterns across works, chapters, and paragraphs. Built from Project Gutenberg eTexts.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://moby-dick.contabulate.org/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='56' font-size='56'%3E🐋%3C/text%3E%3C/svg%3E">
-  <title>🐋 Moby-Dick Tabular Search</title>
+  <title>🐋 Melville Tabular Search</title>
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-  <h1><a href="https://contabulate.org/">Contabulate</a>: 🐋 Moby-Dick Tabular Search</h1>
-  <p class="muted">Search words, bigrams, or trigrams across chapters and paragraphs of Melville's masterpiece. Use regex (e.g., <code>^whale$</code>) or plain text. Source text courtesy of <a href="https://www.gutenberg.org/ebooks/2701" target="_blank">Project Gutenberg</a>.</p>
+  <h1><a href="https://contabulate.org/">Contabulate</a>: 🐋 Melville Tabular Search</h1>
+  <p class="muted">Search words, bigrams, or trigrams across the complete prose fiction of Herman Melville: works, chapters, and paragraphs. Use regex (e.g., <code>^whale$</code>) or plain text. Source texts courtesy of Project Gutenberg.</p>
   <div id="dbLoading" class="muted" role="status" aria-live="polite">
     <span id="dbLoadingText">Loading database...</span>
   </div>
@@ -37,7 +37,8 @@
         </select>
         <span class="label-strong">by</span>
         <select id="gran" class="control-select">
-          <option value="play">Chapter</option>
+          <option value="genre">Work</option>
+          <option value="act">Chapter</option>
           <option value="line" selected>Paragraph Text</option>
         </select>
         <span class="label-strong">matching</span>
@@ -1090,6 +1091,7 @@
 
   async function buildRowsForTerms(terms, preferredSortTermIndex = null){
     const granVal = gran.value;
+    const detailGranVal = granVal === 'genre' ? 'play' : granVal;
     const activeTerms = (terms || []).map(t => toTermSpec(t, matchMode.value)).filter(Boolean);
     const hasTerms = activeTerms.length > 0;
     const baseN = normalizeTermN(activeTerms[0] && activeTerms[0].n) || getSelectedNgramModeValue();
@@ -1175,15 +1177,6 @@
       return dbApi.getTokenPostings(key, termN);
     }
 
-    const genreTotals = new Map();
-    const genrePlayCounts = new Map();
-    if (granVal === 'genre') {
-      plays.forEach(play => {
-        const g = play.genre || 'unknown';
-        genreTotals.set(g, (genreTotals.get(g) || 0) + (play.total_words || 0));
-        genrePlayCounts.set(g, (genrePlayCounts.get(g) || 0) + 1);
-      });
-    }
     if ((showZeroRows || !hasTerms) && granVal !== 'line') {
       if (granVal === 'scene') {
         chunks.forEach(m => {
@@ -1215,12 +1208,22 @@
           });
         });
       } else if (granVal === 'genre') {
-        for (const [genre, totalWords] of genreTotals.entries()) {
-          ensureRow(genre, () => {
-            const ngramCount = getRowNgramCount(totalWords);
-            return { genre, num_plays: genrePlayCounts.get(genre) || 0, total_words: totalWords, ngram_count:ngramCount };
+        plays.forEach(p => {
+          ensureRow(p.play_id, () => {
+            const total_words = p.total_words ?? 0;
+            const ngramCount = getRowNgramCount(total_words);
+            return {
+              play_id: p.play_id,
+              location: getBookLocation(p),
+              title: p.title,
+              year: p.first_performance_year ?? '',
+              genre: p.genre,
+              num_chapters: p.num_acts ?? 0,
+              total_words,
+              ngram_count: ngramCount
+            };
           });
-        }
+        });
       } else if (granVal === 'character') {
         characters.forEach(c => {
           ensureRow(c.character_id, () => {
@@ -1307,13 +1310,13 @@
 
       const baseCols = [
         { key: 'location', label: 'Location', defaultDir: 'asc', type: 'text' },
-        { key: 'play_title', label: 'Chapter', defaultDir: 'asc', type: 'text' },
+        { key: 'play_title', label: 'Work', defaultDir: 'asc', type: 'text' },
         { key: 'act', label: 'Chapter', type: 'number' },
-        { key: 'scene', label: 'Verse', type: 'number' }
+        { key: 'scene', label: 'Paragraph', type: 'number' }
       ];
       const termCols = buildTermColumns();
       baseCols.push(...termCols);
-      baseCols.push({ key: 'line', label: 'Verse Text', type: 'text' });
+      baseCols.push({ key: 'line', label: 'Paragraph Text', type: 'text' });
       setHeaders(baseCols);
       if (!applyPreferredTermSort(termCols, preferredSortTermIndex)) {
         const defaultSortKey = termCols[0]?.key || 'location';
@@ -1326,9 +1329,9 @@
     if (granVal==='scene'){
       const baseCols = [
         {key:'location', label:'Location', defaultDir:'asc', type:'text'},
-        {key:'play_title', label:'Chapter', defaultDir:'asc', type:'text'},
+        {key:'play_title', label:'Work', defaultDir:'asc', type:'text'},
         {key:'act', label:'Chapter', type:'number'},
-        {key:'scene', label:'Verse', type:'number'},
+        {key:'scene', label:'Paragraph', type:'number'},
         {key:'ngram_count', label: getBaseCountLabel(), type:'number'}
       ];
       for (let termIdx = 0; termIdx < activeTerms.length; termIdx++) {
@@ -1360,7 +1363,7 @@
     if (granVal==='act'){
       const baseCols = [
         {key:'location', label:'Location', defaultDir:'asc', type:'text'},
-        {key:'play_title', label:'Chapter', defaultDir:'asc', type:'text'},
+        {key:'play_title', label:'Work', defaultDir:'asc', type:'text'},
         {key:'act', label:'Chapter', type:'number'},
         {key:'ngram_count', label: getBaseCountLabel(), type:'number'}
       ];
@@ -1441,26 +1444,39 @@
 
     if (granVal==='genre'){
       const baseCols = [
+        {key:'location', label:'Location', defaultDir:'asc', type:'text'},
+        {key:'title', label:'Work', defaultDir:'asc', type:'text'},
+        {key:'year', label:'Year', type:'number'},
         {key:'genre', label:'Genre', defaultDir:'asc', type:'text'},
-        {key:'num_plays', label:'# books', type:'number'},
+        {key:'total_words', label:'# words', type:'number'},
         {key:'ngram_count', label: getBaseCountLabel(), type:'number'}
       ];
       for (let termIdx = 0; termIdx < activeTerms.length; termIdx++) {
         const term = activeTerms[termIdx];
         const postings = await getPostingsForTerm(termIdx);
-        const countsByGenre = new Map();
+        const countsByPlay = new Map();
         for (const [scene_id,c] of postings){
           const m = chunkById.get(scene_id); if (!m) continue;
-          const genre = m.genre || 'unknown';
-          countsByGenre.set(genre, (countsByGenre.get(genre)||0) + c);
+          countsByPlay.set(m.play_id, (countsByPlay.get(m.play_id)||0) + c);
         }
-        for (const [genre,count] of countsByGenre.entries()){
-          const totalWords = genreTotals.get(genre) || 0;
-          const row = ensureRow(genre, () => {
-            const ngramCount = getRowNgramCount(totalWords);
-            return { genre, num_plays: genrePlayCounts.get(genre) || 0, total_words: totalWords, ngram_count:ngramCount };
+        for (const [pid,count] of countsByPlay.entries()){
+          const p = playsById.get(pid);
+          if (!p) continue;
+          const row = ensureRow(pid, () => {
+            const total_words = p.total_words ?? 0;
+            const ngramCount = getRowNgramCount(total_words);
+            return {
+              play_id: pid,
+              location: getBookLocation(p),
+              title: p.title,
+              year: p.first_performance_year ?? '',
+              genre: p.genre,
+              num_chapters: p.num_acts ?? 0,
+              total_words,
+              ngram_count: ngramCount
+            };
           });
-          const denom = denomFor(normalizeTermN(term.n) || 1, 'genre', { total_words: totalWords });
+          const denom = denomFor(normalizeTermN(term.n) || 1, 'genre', { total_words: row.total_words });
           row[`${termKeys[termIdx]}_count`] = count;
           row[`${termKeys[termIdx]}_pct`] = denom ? count/denom : 0;
         }
@@ -1618,6 +1634,7 @@
     const cols = colDefs.map((c) => c.key);
     const numericRankIndex = buildNumericRankIndex(segmentsAllRows, colDefs);
     const granVal = gran.value;
+    const detailGranVal = granVal === 'genre' ? 'play' : granVal;
 
     for (const r of paginatedRows) {
       const tr = document.createElement('tr');
@@ -1633,14 +1650,14 @@
           td.innerHTML = (colorScaleState.highlightEnabled && r.line_highlight_regex)
             ? highlightHTML(r.line, r.line_highlight_regex)
             : escapeHTML(r.line);
-        } else if (typeof isCharacterDetailCell === 'function' && isCharacterDetailCell(granVal, k, r)) {
+        } else if (typeof isCharacterDetailCell === 'function' && isCharacterDetailCell(detailGranVal, k, r)) {
           const v = r[k];
           if (v !== undefined && v !== null && r.character_id != null) {
             td.appendChild(buildCharacterDetailLink(v, r.character_id));
           } else {
             td.textContent = (v === undefined || v === null) ? '' : v;
           }
-        } else if (typeof isPlayDetailCell === 'function' && isPlayDetailCell(granVal, k, r)) {
+        } else if (typeof isPlayDetailCell === 'function' && isPlayDetailCell(detailGranVal, k, r)) {
           const v = r[k];
           if (v !== undefined && v !== null && r.play_id != null) {
             td.appendChild(buildPlayDetailLink(v, r.play_id));

@@ -1,0 +1,13 @@
+[
+  {"id": "typee", "title": "Typee", "year": 1846, "genre": "Novel", "file": "typee.txt", "gutenberg": 1900},
+  {"id": "omoo", "title": "Omoo", "year": 1847, "genre": "Novel", "file": "omoo.txt", "gutenberg": 4045},
+  {"id": "mardi", "title": "Mardi", "year": 1849, "genre": "Novel", "files": ["mardi-v1.txt", "mardi-v2.txt"], "gutenberg": [13720, 13721]},
+  {"id": "redburn", "title": "Redburn", "year": 1849, "genre": "Novel", "file": "redburn.txt", "gutenberg": 8118},
+  {"id": "white-jacket", "title": "White-Jacket", "year": 1850, "genre": "Novel", "file": "white-jacket.txt", "gutenberg": 10712},
+  {"id": "moby-dick", "title": "Moby-Dick", "year": 1851, "genre": "Novel", "file": "moby-dick.txt", "gutenberg": 2701},
+  {"id": "pierre", "title": "Pierre", "year": 1852, "genre": "Novel", "file": "pierre.txt", "gutenberg": 34970},
+  {"id": "bartleby", "title": "Bartleby, the Scrivener", "year": 1853, "genre": "Short Fiction", "file": "bartleby.txt", "gutenberg": 11231, "note": "Also in The Piazza Tales"},
+  {"id": "israel-potter", "title": "Israel Potter", "year": 1855, "genre": "Novel", "file": "israel-potter.txt", "gutenberg": 15422},
+  {"id": "confidence-man", "title": "The Confidence-Man", "year": 1857, "genre": "Novel", "file": "confidence-man.txt", "gutenberg": 21816},
+  {"id": "billy-budd", "title": "Billy Budd", "year": 1891, "genre": "Novella", "file": "billy-budd.txt", "gutenberg": 76513, "note": "Published posthumously 1924; extract Billy Budd novella only from collected volume"}
+]
