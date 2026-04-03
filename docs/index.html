@@ -16,7 +16,7 @@
 </head>
 <body>
   <h1><a href="https://contabulate.org/">Contabulate</a>: 🐋 Melville Tabular Search</h1>
-  <p class="muted">Search words, bigrams, or trigrams across the complete prose fiction of Herman Melville: works, chapters, and paragraphs. Use regex (e.g., <code>^whale$</code>) or plain text. Source texts courtesy of Project Gutenberg.</p>
+  <p class="muted">Search words, and bigrams across the complete prose fiction of Herman Melville: works, chapters, and paragraphs. Use regex (e.g., <code>^whale$</code>) or plain text. Source texts courtesy of Project Gutenberg.</p>
   <div id="dbLoading" class="muted" role="status" aria-live="polite">
     <span id="dbLoadingText">Loading database...</span>
   </div>
@@ -51,7 +51,6 @@
           <select id="ngramMode" class="control-select">
             <option value="1" selected>single words</option>
             <option value="2">bigrams</option>
-            <option value="3">trigrams</option>
           </select>
         </span>
         <input id="q" class="query-input" type="text" placeholder="e.g., whale, white whale, ^ahab">
@@ -124,7 +123,6 @@
         <select id="linesNgramMode" class="control-select">
           <option value="1" selected>single word</option>
           <option value="2">bigram</option>
-          <option value="3">trigram</option>
         </select>
         <span class="label-strong">matching the</span>
         <select id="linesMatchMode" class="control-select">
